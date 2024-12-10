@@ -1,27 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Badge from "react-bootstrap/Badge";
 import ListGroup from "react-bootstrap/ListGroup";
 
 export const List = () => {
-  const [list, setList] = useState([
-    {
-      task: "Hacer la compra",
-      id: crypto.randomUUID(),
-    },
-  ]);
+  const [list, setList] = useState([]);
   const [inputValue, setInputValue] = useState("");
 
-  function pressKey(event) {
-    if (event.code === "Enter") {
-      let variable = { task: event.target.value, id: crypto.randomUUID() };
-      setList(list.concat(variable));
-      setInputValue("");
-    }
-  }
+  const traerTareas = () => {
+    fetch("https://playground.4geeks.com/todo/users/ebattaner", {
+      method: "GET",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.todos) {
+          setList(data.todos);
+        }
+      });
+  };
 
-  function removeTask(id) {
-    setList(list.filter((item) => item.id !== id));
-  }
+  const nuevaEntrada = (e) => {
+    if (e.key === "Enter") {
+      fetch("https://playground.4geeks.com/todo/todos/ebattaner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label: inputValue, done: false }),
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then(() => {
+          setInputValue("");
+          traerTareas();
+        });
+    }
+  };
+
+  const removeTask = (id) => {
+    fetch(`https://playground.4geeks.com/todo/todos/${id}`, {
+      method: "DELETE",
+    }).then(traerTareas());
+  };
+
+  useEffect(() => {
+    traerTareas();
+  }, []);
 
   return (
     <div
@@ -34,18 +56,16 @@ export const List = () => {
     >
       <ListGroup style={{ width: "30%" }}>
         <ListGroup.Item>
-          <h1>To-Do list</h1>
-        </ListGroup.Item>
-        <ListGroup.Item>
           <input
-            style={{ width: "100%" }}
-            type="text"
             placeholder="Aquí tu nueva tarea"
             id="input"
             value={inputValue}
-            onKeyDown={(event) => pressKey(event)}
+            onKeyDown={(event) => nuevaEntrada(event)}
             onChange={(e) => setInputValue(e.target.value)}
           />
+        </ListGroup.Item>
+        <ListGroup.Item>
+          <h1>To-Do List</h1>
         </ListGroup.Item>
         {list.map((item) => (
           <ListGroup.Item
@@ -60,7 +80,7 @@ export const List = () => {
                 "hidden")
             }
           >
-            {item.task}
+            {item.label}
             <Badge
               bg="dark"
               className="badge-remove"
