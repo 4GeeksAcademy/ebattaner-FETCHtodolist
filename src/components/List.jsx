@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Badge from "react-bootstrap/Badge";
 import ListGroup from "react-bootstrap/ListGroup";
+import { isEmpty } from "lodash";
 
 export const List = () => {
   const [list, setList] = useState([]);
@@ -12,8 +13,10 @@ export const List = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.todos) {
+        if (!isEmpty(data.todos)) {
           setList(data.todos);
+        } else {
+          setList([]);
         }
       });
   };
@@ -24,14 +27,10 @@ export const List = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ label: inputValue, done: false }),
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .then(() => {
-          setInputValue("");
-          traerTareas();
-        });
+      }).then(() => {
+        setInputValue("");
+        traerTareas();
+      });
     }
   };
 
