@@ -7,11 +7,30 @@ export const List = () => {
   const [list, setList] = useState([]);
   const [inputValue, setInputValue] = useState("");
 
+  const existo = () => {
+    fetch("https://playground.4geeks.com/todo/users/ebattaner", {
+      method: "POST",
+    })
+      .then((response) => {
+        if (response.status == 201) {
+          traerTareas();
+        }
+        return response.json;
+      })
+      .then((data) => data)
+      .catch((error) => console.log("error"));
+  };
+
   const traerTareas = () => {
     fetch("https://playground.4geeks.com/todo/users/ebattaner", {
       method: "GET",
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status == 404) {
+          existo();
+        }
+        return response.json();
+      })
       .then((data) => {
         if (!isEmpty(data.todos)) {
           setList(data.todos);
